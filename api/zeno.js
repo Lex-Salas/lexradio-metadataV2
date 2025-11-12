@@ -1,18 +1,25 @@
 export default async function handler(req, res) {
   try {
-    const r = await fetch('https://api.zeno.fm/mounts/metadata/iqom6dgpir8vv');
-    const data = await r.json();
+    // Petición directa al endpoint de metadatos de Zeno.fm
+    const response = await fetch('https://api.zeno.fm/mounts/metadata/iqom6dgpir8vv');
+    
+    if (!response.ok) {
+      throw new Error(`Error de conexión: ${response.status}`);
+    }
 
-    // Permitir acceso desde cualquier origen
+    const data = await response.json();
+
+    // Permitir acceso desde cualquier dominio
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+    // Devolver los metadatos en formato JSON
     res.status(200).json(data);
-  } catch (err) {
+  } catch (error) {
     res.status(500).json({
-      error: 'No se pudo obtener metadatos',
-      details: err.message
+      error: 'No se pudieron obtener los metadatos desde Zeno.fm',
+      details: error.message,
     });
   }
 }
