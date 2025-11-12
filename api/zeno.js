@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   try {
-    // Endpoint oficial de Zeno con tu mountpoint
-    const response = await fetch('https://api.zeno.fm/stations/lo1dx1b1e52tv');
+    // Endpoint alternativo de Zeno (funciona sin autenticación)
+    const response = await fetch('https://public.api.zeno.fm/v2/metadata/nowplaying/lo1dx1b1e52tv');
 
     if (!response.ok) {
       throw new Error(`Error ${response.status} al conectar con Zeno`);
@@ -9,10 +9,13 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Extraemos la parte que tiene la canción actual
-    const nowPlaying = data?.now_playing?.text || data?.live_metadata?.now_playing || "Desconocido";
+    // Extraemos el título de la canción actual
+    const nowPlaying =
+      data?.data?.now_playing?.song?.text ||
+      data?.data?.song ||
+      "Desconocido";
 
-    // Enviamos la respuesta limpia
+    // Enviamos JSON limpio al frontend
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Content-Type", "application/json");
     res.status(200).json({ now_playing: nowPlaying });
