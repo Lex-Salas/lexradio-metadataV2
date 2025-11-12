@@ -1,37 +1,24 @@
-import http from "http";
-
 export default async function handler(req, res) {
   try {
-    const options = {
-      host: "stream.zeno.fm",
-      path: "/lo1dx1b1e52tv/metadata",
-      port: 80,
-      method: "GET",
-    };
+    // Endpoint oficial de Zeno con tu mountpoint
+    const response = await fetch('https://api.zeno.fm/stations/lo1dx1b1e52tv');
 
-    const request = http.request(options, (response) => {
-      let data = "";
+    if (!response.ok) {
+      throw new Error(`Error ${response.status} al conectar con Zeno`);
+    }
 
-      response.on("data", (chunk) => {
-        data += chunk;
-      });
+    const data = await response.json();
 
-      response.on("end", () => {
-        const cleaned = data.trim();
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Content-Type", "application/json");
-        res.status(200).json({ now_playing: cleaned });
-      });
-    });
+    // Extraemos la parte que tiene la canción actual
+    const nowPlaying = data?.now_playing?.text || data?.live_metadata?.now_playing || "Desconocido";
 
-    request.on("error", (error) => {
-      res.status(500).json({ error: "Error al conectar con Zeno.fm", details: error.message });
-    });
-
-    request.end();
+    // Enviamos la respuesta limpia
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json({ now_playing: nowPlaying });
   } catch (error) {
     res.status(500).json({
-      error: "Fallo interno al obtener los metadatos",
+      error: "No se pudieron obtener metadatos desde Zeno.fm",
       details: error.message,
     });
   }
